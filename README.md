@@ -5,7 +5,7 @@ Reactual is a low-level library that provides [signal/slot] and
 toolkit, or any other library that has a model on which clients will listen and to which they will
 react.
 
-* [API docs](http://samskivert.github.com/reactual/apidocs/) are available.
+* [API docs](http://samskivert.github.com/reactual/api/reactual/package.html) are available.
 
 ## Building
 
