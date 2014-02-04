@@ -261,6 +261,20 @@ class FutureTest {
     counter.check("after seq fail/fail", 0, 1, 1)
   }
 
+  @Test def testSequenceEmpty () {
+    val counter = new FutureCounter()
+    val seq = Future.sequence(Seq())
+    counter.bind(seq)
+    counter.check("sequence empty list succeeds", 1, 0, 1)
+  }
+
+  @Test def testCollectEmpty () {
+    val counter = new FutureCounter()
+    val seq = Future.collect(Seq())
+    counter.bind(seq)
+    counter.check("collect empty list succeeds", 1, 0, 1)
+  }
+
   @Test def testCollectImmediate () {
     val counter = new FutureCounter()
 

@@ -96,35 +96,40 @@ object Future {
     * futures. If not, the result list is in `futures`' iteration order.
     */
   def sequence[T] (futures :Seq[Future[T]]) :Future[Seq[T]] = {
-    val pseq = Promise[Seq[T]]()
-    class Sequencer {
-      def onResult (idx :Int, result :Try[T]) = synchronized {
-        result match {
-          case Success(v) => _results(idx) = v
-          case Failure(e) =>
-            if (_errs == null) _errs = ListBuffer[Throwable]()
-            _errs += e
+    // if we're passed an empty list of futures, "succeed" immediately; if we followed the other
+    // branch we'd return a future that never succeeded nor failed which is not useful
+    if (futures.isEmpty) success(Seq())
+    else {
+      val pseq = Promise[Seq[T]]()
+      class Sequencer {
+        def onResult (idx :Int, result :Try[T]) = synchronized {
+          result match {
+            case Success(v) => _results(idx) = v
+            case Failure(e) =>
+              if (_errs == null) _errs = ListBuffer[Throwable]()
+              _errs += e
+          }
+          _remain -= 1
+          if (_remain == 0) {
+            if (_errs != null) pseq.fail(new ReactionException(_errs))
+            // we know that Array[Any] can safely be turned into Seq[T], so we cheat
+            else pseq.succeed(_results.asInstanceOf[Array[T]])
+          }
         }
-        _remain -= 1
-        if (_remain == 0) {
-          if (_errs != null) pseq.fail(new ReactionException(_errs))
-          // we know that Array[Any] can safely be turned into Seq[T], so we cheat
-          else pseq.succeed(_results.asInstanceOf[Array[T]])
-        }
+        private[this] val _results = Array.ofDim[Any](futures.size)
+        private[this] var _remain :Int = futures.size
+        private[this] var _errs :ListBuffer[Throwable] = _
       }
-      private[this] val _results = Array.ofDim[Any](futures.size)
-      private[this] var _remain :Int = futures.size
-      private[this] var _errs :ListBuffer[Throwable] = _
+      val seq = new Sequencer()
+      var ii = 0
+      val iter = futures.iterator
+      while (iter.hasNext) {
+        val idx = ii
+        iter.next().onComplete(result => seq.onResult(idx, result))
+        ii += 1
+      }
+      pseq
     }
-    val seq = new Sequencer()
-    var ii = 0
-    val iter = futures.iterator
-    while (iter.hasNext) {
-      val idx = ii
-      iter.next().onComplete(result => seq.onResult(idx, result))
-      ii += 1
-    }
-    pseq
   }
 
   /** Returns a future containing a list of all success results from `futures`. Any failure results
@@ -132,17 +137,22 @@ object Future {
     * of `futures` fail, the resulting list will be empty.
     */
   def collect[T] (futures :Seq[Future[T]]) :Future[Seq[T]] = {
-    val pseq = Promise[Seq[T]]()
-    val collector = new Function1[Try[T],Unit]() {
-      def apply (result :Try[T]) = synchronized {
-        if (result.isSuccess) _results += result.get
-        _remain -= 1
-        if (_remain == 0) pseq.succeed(_results)
+    // if we're passed an empty list of futures, "succeed" immediately; if we followed the other
+    // branch we'd return a future that never succeeded nor failed which is not useful
+    if (futures.isEmpty) success(Seq())
+    else {
+      val pseq = Promise[Seq[T]]()
+      val collector = new Function1[Try[T],Unit]() {
+        def apply (result :Try[T]) = synchronized {
+          if (result.isSuccess) _results += result.get
+          _remain -= 1
+          if (_remain == 0) pseq.succeed(_results)
+        }
+        private[this] val _results = new ArrayBuffer[T]()
+        private[this] var _remain = futures.size
       }
-      private[this] val _results = new ArrayBuffer[T]()
-      private[this] var _remain = futures.size
+      futures.foreach(_.onComplete(collector))
+      pseq
     }
-    futures.foreach(_.onComplete(collector))
-    pseq
   }
 }
