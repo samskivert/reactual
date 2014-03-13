@@ -86,6 +86,11 @@ class Reactor[L] {
     _listeners = null
   }
 
+  protected def shortClassName :String = {
+    val cname = getClass.getName
+    cname.substring(cname.lastIndexOf(".")+1)
+  }
+
   /** Called prior to mutating any underlying model allows subclasses to reject mutation. */
   protected def checkMutate () {} // noop
 
