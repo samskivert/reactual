@@ -12,6 +12,10 @@ abstract class ValueV[T] extends SignalV[T] {
   /** Returns the current value. */
   def get :T
 
+  /** Returns the current value. This is a synonym for [[get]] so that one can use Scala's special
+    * apply syntax (e.g. `myval()` instead of `myval.get`). */
+  def apply () :T = get
+
   /** Maps the output of this value via `f`. When this value is updated, the mapped value will emit
     * that value as transformed by `f`. A call to `get` on the mapped value will call get on this
     * value and transform the result via `f` before returning it. The mapped value will retain a

@@ -19,6 +19,11 @@ abstract class OptValueV[T] extends SignalV[Option[T]] {
     * @throws NoSuchElementException if the value is currently empty. */
   def get :T
 
+  /** Returns the current value. This is a synonym for [[get]] so that one can use Scala's special
+    * apply syntax (e.g. `myval()` instead of `myval.get`).
+    * @throws NoSuchElementException if the value is currently empty. */
+  def apply () :T = get
+
   /** Returns the contents of this value as an option. */
   def getOption :Option[T] = if (isDefined) Some(get) else None
 
