@@ -6,7 +6,7 @@
 package reactual
 
 /** A container for a single value, which may be observed for changes. */
-class Value[T] (init :T) extends ValueV[T] {
+class Value[T] (init :T) extends ValueV[T] with Property[T] {
 
   /** Updates this instance with the supplied value. Registered listeners are notified only if the
     * value differs from the current value.

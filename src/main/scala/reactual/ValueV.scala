@@ -7,7 +7,7 @@ package reactual
 
 /** A view of a [[Value]] which may be observed, but not updated.
   */
-abstract class ValueV[T] extends SignalV[T] {
+abstract class ValueV[T] extends SignalV[T] with PropertyV[T] {
 
   /** Returns the current value. */
   def get :T
