@@ -24,6 +24,15 @@ class Value[T] (init :T) extends ValueV[T] with Property[T] {
     */
   def updateForce (value :T) :T = updateAndNotify(value)
 
+  /** Updates this instance by applying `fn` to the current value and calling [[update]] on the
+    * result. This is useful for mutating case classes stored in values, enabling usage like the
+    * following: `v.updateMap(_.copy(foo=bar))`.
+    *
+    * @return the previous value contained by this instance.
+    * @throws $EXNDOC
+    */
+  def updateMap (fn :T => T) :T = update(fn(get))
+
   override def get :T = _value
 
   override protected def updateLocal (value :T) = {
