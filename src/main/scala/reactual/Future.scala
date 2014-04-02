@@ -32,6 +32,14 @@ class Future[+T] protected (_result :ValueV[Try[T]]) {
     case r    => foreachFailure(r, slot) ; this
   }
 
+  /** Causes `success` to be notified if/when this future is completed with success, and `failure` to
+    * be notified if/when this future is completed with failure. If the future has already
+    * completed, the appropriate function will be called immediately.
+    * @return this future for chaining.
+    */
+  def onComplete (success :T => Unit, failure :Throwable => Unit) :this.type =
+    onSuccess(success).onFailure(failure)
+
   /** Causes `slot` to be notified when this future is completed. If it has already completed, the
     * slot will be notified immediately.
     * @return this future for chaining.
