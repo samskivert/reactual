@@ -8,12 +8,6 @@ package reactual
 import scala.collection.mutable.ListBuffer
 
 /** A view of a [[Signal]] on which one may listen but via which one cannot emit value.
-  *
-  * @define PRIODOC the priority of the connection. Higher priorities are notified first.
-  * @define CONDOC an object that can be used to close the connection.
-  * @define EXNDOC ReactionException encapsulates any errors thrown by listeners during notification.
-  * All listeners will be notified regardless of whether any throw exceptions, and if one or more
-  * listeners throw exceptions, they are aggregated into a ReactionException and thrown.
   */
 class SignalV[T] extends Reactor[T => Unit] {
   import Impl._

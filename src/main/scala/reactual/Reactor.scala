@@ -5,9 +5,14 @@
 
 package reactual
 
-/**
- * A base class for all reactive classes. This is an implementation detail, but is public so that
- * third parties may use it to create their own reactive classes, if desired.
+/** A base class for all reactive classes. This is an implementation detail, but is public so that
+  * third parties may use it to create their own reactive classes, if desired.
+  *
+  * @define PRIODOC the priority of the connection. Higher priorities are notified first.
+  * @define CONDOC an object that can be used to close the connection.
+  * @define EXNDOC ReactionException encapsulates any errors thrown by listeners during notification.
+  * All listeners will be notified regardless of whether any throw exceptions, and if one or more
+  * listeners throw exceptions, they are aggregated into a ReactionException and thrown.
  */
 class Reactor[L] {
   import Impl._
