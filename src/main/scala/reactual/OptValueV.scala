@@ -7,7 +7,7 @@ package reactual
 
 /** A view of an [[OptValue]] which may be observed, but not updated.
   */
-abstract class OptValueV[T] extends SignalV[Option[T]] {
+abstract class OptValueV[T] extends ValueReactor[Option[T]] {
 
   /** Returns whether this value is non-empty. */
   def isDefined :Boolean
@@ -45,7 +45,7 @@ abstract class OptValueV[T] extends SignalV[Option[T]] {
       // so we're safe in checking and mutating _conn
       override protected def connectionAdded () {
         super.connectionAdded()
-        if (_conn == null) _conn = outer.onValue(v => notifyEmit(v.map(f)))
+        if (_conn == null) _conn = outer.onChange((nv, ov) => notifyEmit(nv.map(f), ov.map(f)))
       }
       override protected def connectionRemoved () {
         super.connectionRemoved()
@@ -55,30 +55,6 @@ abstract class OptValueV[T] extends SignalV[Option[T]] {
         }
       }
       protected var _conn :Connection = _
-    }
-  }
-
-  /** Connects `slot` to this value with priority 0; it will be invoked when the value changes. Also
-    * immediately invokes `slot` with the current value.
-    * @return $CONDOC
-    */
-  def onValueNotify (slot :Option[T] => Unit) :Connection = onValueNotifyAt(0)(slot)
-
-  /** Connects `slot` to this value; it will be invoked when the value changes. Also immediately
-    * invokes `slot` with the current value.
-    * @param prio $PRIODOC
-    * @return $CONDOC
-    */
-  def onValueNotifyAt (prio :Int)(slot :Option[T] => Unit) :Connection = {
-    // connect before notifying the slot; if the slot changes the value during execution, it will
-    // expect to be notified of that change; but if the slot throws an exception, we need to take
-    // care of disconnecting because the returned connection will never reach the caller
-    val conn = onValueAt(prio)(slot)
-    try {
-      slot(getOption)
-      conn
-    } catch {
-      case e :Throwable => conn.close(); throw e
     }
   }
 
@@ -94,6 +70,8 @@ abstract class OptValueV[T] extends SignalV[Option[T]] {
 
   override def toString :String =
     if (isDefined) s"$shortClassName($get)" else s"$shortClassName(<empty>)"
+
+  override protected def getForNotify = getOption
 
   /** Updates the value contained in this instance and notifies registered listeners iff said value
     * is not equal to the value already contained in this instance.
@@ -113,11 +91,8 @@ abstract class OptValueV[T] extends SignalV[Option[T]] {
   protected def updateAndNotify (value :T, force :Boolean) :Unit = {
     checkMutate()
     val ovalue = updateLocal(value)
-    if (force || value != ovalue) emitChange(Option(value))
+    if (force || value != ovalue) emitChange(Option(value), Option(ovalue))
   }
-
-  /** Emits a changed value. Default implementation immediately notifies listeners. */
-  protected def emitChange (value :Option[T]) = notifyEmit(value)
 
   /** Updates our locally stored value. Default implementation throws unsupported operation.
     * @return the previously stored value.

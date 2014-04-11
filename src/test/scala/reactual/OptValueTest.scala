@@ -16,7 +16,8 @@ class OptValueTest {
     assertFalse(value.isEmpty)
 
     var fired = false
-    value.onValue({ nv =>
+    value.onChange({ (nv, ov) =>
+      assertEquals(Some(42), ov)
       assertEquals(Some(15), nv)
       fired = true
     }).once()
@@ -25,7 +26,8 @@ class OptValueTest {
     assertTrue(fired)
 
     var cleared = false
-    value.onValue({ nv =>
+    value.onChange({ (nv, ov) =>
+      assertEquals(Some(15), ov)
       assertEquals(None, nv)
       cleared = true
     }).once()
@@ -40,7 +42,8 @@ class OptValueTest {
     assertTrue(value.isEmpty)
 
     var fired = false
-    value.onValue { nv =>
+    value.onChange { (nv, ov) =>
+      assertEquals(None, ov)
       assertEquals(Some(15), nv)
       fired = true
     }
