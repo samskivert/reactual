@@ -71,7 +71,7 @@ class SignalV[T] extends Reactor[T => Unit] {
   /** Emits the supplied value to all connections. */
   protected def notifyEmit (value :T) {
     val lners = prepareNotify()
-    var errs :ListBuffer[Throwable] = null
+    var err :ReactionException = null
     try {
       var cons = lners
       while (cons != null) {
@@ -79,8 +79,8 @@ class SignalV[T] extends Reactor[T => Unit] {
           cons.listener.apply(value)
         } catch {
           case t :Throwable =>
-            if (errs == null) errs = ListBuffer[Throwable]()
-            errs += t
+            if (err == null) err = new ReactionException()
+            err addSuppressed t
         }
         if (cons.oneShot) cons.close()
         cons = cons.next
@@ -88,6 +88,6 @@ class SignalV[T] extends Reactor[T => Unit] {
     } finally {
       finishNotify(lners)
     }
-    if (errs != null) throw new ReactionException(errs)
+    if (err != null) throw err
   }
 }

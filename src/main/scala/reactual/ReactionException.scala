@@ -8,17 +8,16 @@ package reactual
 import java.io.{PrintStream, PrintWriter}
 
 /** Communicates failures from one or more reactors. */
-class ReactionException (val failures :Seq[Throwable]) extends RuntimeException {
-
-  failures foreach addSuppressed
+class ReactionException extends RuntimeException {
 
   override def getMessage = {
     val buf = new StringBuilder
-    for (failure <- failures) {
+    val sup = getSuppressed
+    for (failure <- sup) {
       if (buf.length > 0) buf.append(", ")
       buf.append(failure.getClass.getName).append(": ").append(failure.getMessage)
     }
-    failures.size + " failures: " + buf
+    s"${sup.length} failures: $buf"
   }
 
   override def fillInStackTrace () :Throwable = this // no stack trace here

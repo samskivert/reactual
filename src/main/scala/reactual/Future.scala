@@ -5,7 +5,7 @@
 
 package reactual
 
-import scala.collection.mutable.{ArrayBuffer, ListBuffer}
+import scala.collection.mutable.ArrayBuffer
 import scala.util.{Try, Success, Failure}
 
 /** Represents an asynchronous result. Unlike Java or Scala futures, you cannot block on this
@@ -114,19 +114,19 @@ object Future {
           result match {
             case Success(v) => _results(idx) = v
             case Failure(e) =>
-              if (_errs == null) _errs = ListBuffer[Throwable]()
-              _errs += e
+              if (_err == null) _err = new ReactionException()
+              _err addSuppressed e
           }
           _remain -= 1
           if (_remain == 0) {
-            if (_errs != null) pseq.fail(new ReactionException(_errs))
+            if (_err != null) pseq.fail(_err)
             // we know that Array[Any] can safely be turned into Seq[T], so we cheat
             else pseq.succeed(_results.asInstanceOf[Array[T]])
           }
         }
         private[this] val _results = Array.ofDim[Any](futures.size)
         private[this] var _remain :Int = futures.size
-        private[this] var _errs :ListBuffer[Throwable] = _
+        private[this] var _err :ReactionException = _
       }
       val seq = new Sequencer()
       var ii = 0
