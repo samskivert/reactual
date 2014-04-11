@@ -7,7 +7,7 @@ package reactual
 
 /** A view of a [[Value]] which may be observed, but not updated.
   */
-abstract class ValueV[T] extends SignalV[T] with PropertyV[T] {
+abstract class ValueV[T] extends Reactor[(T,T) => Unit] with PropertyV[T] {
 
   /** Returns the current value. */
   def get :T
@@ -21,7 +21,7 @@ abstract class ValueV[T] extends SignalV[T] with PropertyV[T] {
     * value and transform the result via `f` before returning it. The mapped value will retain a
     * connection to this value for as long as it has connections of its own.
     */
-  override def map[M] (f :T => M) :ValueV[M] = {
+  def map[M] (f :T => M) :ValueV[M] = {
     val outer = this
     new ValueV[M]() {
       override def get = f(outer.get)
@@ -29,7 +29,7 @@ abstract class ValueV[T] extends SignalV[T] with PropertyV[T] {
       // so we're safe in checking and mutating _conn
       override protected def connectionAdded () {
         super.connectionAdded()
-        if (_conn == null) _conn = outer.onValue(v => notifyEmit(f(v)))
+        if (_conn == null) _conn = outer.onChange((v,o) => notifyEmit(f(v), f(o)))
       }
       override protected def connectionRemoved () {
         super.connectionRemoved()
@@ -41,6 +41,32 @@ abstract class ValueV[T] extends SignalV[T] with PropertyV[T] {
       protected var _conn :Connection = _
     }
   }
+
+  /** Connects the supplied "value agnostic" block of code with priority 0. When a value is emitted,
+    * the block will be executed. Useful when you don't care about the value.
+    * @return $CONDOC
+    */
+  def onEmit (block : =>Unit) :Connection = addConnection(0, (_,_) => block)
+
+  /** Connects the supplied "value agnostic" block of code at the specified priority. When a value is
+    * emitted, the block will be executed. Useful when you don't care about the value.
+    * @param prio $PRIODOC
+    * @return $CONDOC
+    */
+  def onEmitAt (prio :Int)(block : =>Unit) :Connection = addConnection(prio, (_,_) => block)
+
+  /** Connects the supplied slot (side-effecting function) with priorty zero. When a value is
+    * emitted, the slot will be invoked with the value.
+    * @return $CONDOC
+    */
+  def onValue (slot :T => Unit) :Connection = onValueAt(0)(slot)
+
+  /** Connects the supplied slot (side-effecting function) at the specified priority. When a value is
+    * emitted, the slot will be invoked with the value.
+    * @param prio $PRIODOC
+    * @return $CONDOC
+    */
+  def onValueAt (prio :Int)(slot :T =>Unit) :Connection = addConnection(prio, (c, _) => slot(c))
 
   /** Connects `slot` to this value with priority 0; it will be invoked when the value changes. Also
     * immediately invokes `slot` with the current value.
@@ -65,6 +91,19 @@ abstract class ValueV[T] extends SignalV[T] with PropertyV[T] {
       case e :Throwable => conn.close(); throw e
     }
   }
+
+  /** Connects the supplied slot (side-effecting function) with priorty zero. When a value is
+    * emitted, the slot will be invoked with the value.
+    * @return $CONDOC
+    */
+  def onChange (slot :(T,T) => Unit) :Connection = onChangeAt(0)(slot)
+
+  /** Connects the supplied slot (side-effecting function) at the specified priority. When a value is
+    * emitted, the slot will be invoked with the value.
+    * @param prio $PRIODOC
+    * @return $CONDOC
+    */
+  def onChangeAt (prio :Int)(slot :(T,T)=>Unit) :Connection = addConnection(prio, slot)
 
   override def hashCode = get match {
     case null => 0
@@ -102,10 +141,33 @@ abstract class ValueV[T] extends SignalV[T] with PropertyV[T] {
   }
 
   /** Emits a changed value. Default implementation immediately notifies listeners. */
-  protected def emitChange (value :T, ovalue :T) = notifyEmit(value)
+  protected def emitChange (value :T, ovalue :T) = notifyEmit(value, ovalue)
 
   /** Updates our locally stored value. Default implementation throws unsupported operation.
     * @return the previously stored value.
     */
   protected def updateLocal (value :T) :T = throw new UnsupportedOperationException
+
+  /** Emits the supplied value to all connections. */
+  protected def notifyEmit (value :T, ovalue :T) {
+    val lners = prepareNotify()
+    var err :ReactionException = null
+    try {
+      var cons = lners
+      while (cons != null) {
+        try {
+          cons.listener.apply(value, ovalue)
+        } catch {
+          case t :Throwable =>
+            if (err == null) err = new ReactionException()
+            err addSuppressed t
+        }
+        if (cons.oneShot) cons.close()
+        cons = cons.next
+      }
+    } finally {
+      finishNotify(lners)
+    }
+    if (err != null) throw err
+  }
 }

@@ -25,8 +25,9 @@ class ValueTest {
   @Test def testAsSignal {
     val value = Value(42)
     var fired = false
-    value.onValue { nv =>
+    value.onChange { (nv, ov) =>
       assertEquals(15, nv)
+      assertEquals(42, ov)
       fired = true
     }
     value.update(15)
