@@ -28,6 +28,13 @@ class OptValue[T] private (init :T) extends OptValueV[T] {
     updateAndNotify(value)
   }
 
+  /** Updates this instance with the supplied optional value. Registered listeners are notified only
+    * if the value differs from the current value.
+    *
+    * @throws $EXNDOC
+    */
+  def update (value :Option[T]) :Unit = if (value.isDefined) update(value.get) else clear()
+
   /** Clears the value in this instance, making it empty. Registered listeners are notified only if
     * the value was not previously empty.
     *
