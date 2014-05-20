@@ -75,7 +75,7 @@ class OptValueTest {
   @Test def testDisallowNull {
     val value = OptValue[String]()
     try {
-      value.update(null)
+      value.update(null :String)
       fail("Expected IllegalArgumentExeption")
     } catch {
       case x :IllegalArgumentException => // yay!
