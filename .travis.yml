@@ -8,6 +8,5 @@ after_success:
 
 env:
   global:
-  - secure: Vl8skuOAKNigrbO2aAjgC8bU1MqU+EvetTMaTiHiPpm/+sngT4C6QGdGcvbqim7Q+aEmxNU7Qm/xSDW7Cdrq0DXi+N/BIqt4LDdyKf+CHHGw/wUY7S91Fjm9dN1qE9SYk+BHhEbpZTNmvblAg/UES1xU9XLapMCnOf1r8gBGEe0=
-SONATYPE_PASSWORD=98042sona:
-  - secure: cAi4OjibeYhiTo9lFai/IMBuCw3a0Q0oEWCxG6pw9gbvL705sGr9H5cS7Uw3jipk48Fqveph1UGB5NInDwYY7U7Jt3MRGfN2DnFYWgxmsfgaryLc0eqThtK/d/+QBApKuXuVPQMA2B8t8fRaxOB3ler2PT3QwF/LizrNdTvPG+c=
+  - secure: "dByqO3y8IEWYFeu23xIDQ9ojYiZLcy06zg2YKnHH1hT9okABxS+UD+jix260gcKtDIJp5CL24rDm3gxq0DNf6tZcOKw4mzcLQUGv9TC2hLRH8e7yGRKUakvTfsjME/ykYAgyQVmiXq6GlvyFEnjTi/fbI4WTmunVByiRfH36nNk="
+  - secure: "KXIWgz7QXyv14bexWCevIExc4eIjFgchHf7k+MIJuPM3+ji9j2uYzAbGUCghS5cE8zfGkdptZSUYPkVrNU0QJOn0u8HDEMMBIJSkIv3lQpB8Hvsl9fGuo/zn3P4O6u4kuXCyg5IRhpdUiwfjzoig7kIjSwjKsnAGHg/Dzv7n92M="
