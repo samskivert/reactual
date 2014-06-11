@@ -31,7 +31,7 @@ class SignalTest {
   @Test def testSlotPriority {
     val acc = new StringBuilder
     val signal = Signal[Unit]()
-    // signals are notified lowest to highest by priority, then in registration order
+    // signals are notified highest to lowest by priority, then in registration order
     signal.onEmitAt(1)(acc append "C")
     signal.onEmitAt(3)(acc append "A")
     signal.onEmitAt(2)(acc append "B")
