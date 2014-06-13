@@ -1,0 +1,7 @@
+   name: reactual
+ source: git:https://github.com/samskivert/reactual.git
+version: 1.0
+descrip: A signals/slots plus FRP-like library for Scala.
+ weburl: https://github.com/samskivert/reactual/
+license: New BSD
+ depend: mvn:org.scala-lang:scala-library:2.11.0
