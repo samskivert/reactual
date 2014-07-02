@@ -5,3 +5,4 @@ descrip: A signals/slots plus FRP-like library for Scala.
  weburl: https://github.com/samskivert/reactual/
 license: New BSD
  depend: mvn:org.scala-lang:scala-library:2.11.0
+testdep: mvn:junit:junit:4.11
