@@ -16,7 +16,19 @@ import scala.util.{Try, Success, Failure}
   * as a useful "box" for its underlying value, without concern that references to long satisfied
   * listeners will be inadvertently retained.
   */
-class Promise[T] protected (_result :Value[Try[T]]) extends Future[T](_result) {
+class Promise[T] private (_result :Value[Try[T]]) extends Future[T](_result) {
+
+  /** Creates an uncompleted promise. */
+  def this () = this(new Value[Try[T]](null) {
+    override protected def updateAndNotify (value :Try[T], force :Boolean) = synchronized {
+      if (get != null) throw new IllegalStateException("Already completed")
+      try {
+        super.updateAndNotify(value, force)
+      } finally {
+        clearListeners() // clear out our listeners now that they have been notified
+      }
+    }
+  })
 
   /** Causes this promise to be completed successfully with `value`. */
   def succeed (value :T) :Unit = _result.update(Success(value))
@@ -31,14 +43,5 @@ class Promise[T] protected (_result :Value[Try[T]]) extends Future[T](_result) {
 object Promise {
 
   /** Creates a promise with type `T`. */
-  def apply[T] () :Promise[T] = new Promise[T](new Value[Try[T]](null) {
-    override protected def updateAndNotify (value :Try[T], force :Boolean) = synchronized {
-      if (get != null) throw new IllegalStateException("Already completed")
-      try {
-        super.updateAndNotify(value, force)
-      } finally {
-        clearListeners() // clear out our listeners now that they have been notified
-      }
-    }
-  })
+  def apply[T] () :Promise[T] = new Promise[T]()
 }
