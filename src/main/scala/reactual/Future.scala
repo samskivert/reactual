@@ -18,18 +18,32 @@ class Future[+T] protected (_result :ValueV[Try[T]]) {
     * suceeded, the slot will be notified immediately.
     * @return this future for chaining.
     */
-  def onSuccess (slot :T => Unit) :this.type = _result.get match {
-    case null => _result.onValue(_.foreach(slot)) ; this
-    case r    => r.foreach(slot) ; this
+  def onSuccess (slot :T => Unit) :this.type = { connectSuccess(slot) ; this }
+
+  /** Causes `slot` to be notified if/when this future is completed with success. If it has already
+    * suceeded, the slot will be notified immediately.
+    * @return a connection that can be used to cancel the notification. If the future has already
+    * completed, the returned connection will do nothing.
+    */
+  def connectSuccess (slot :T => Unit) :Connection = _result.get match {
+    case null => _result.onValue(_.foreach(slot))
+    case r    => r.foreach(slot) ; Connection.Noop
   }
 
   /** Causes `slot` to be notified if/when this future is completed with failure. If it has already
     * failed, the slot will be notified immediately.
     * @return this future for chaining.
     */
-  def onFailure (slot :Throwable => Unit) :this.type = _result.get match {
-    case null => _result.onValue(foreachFailure(_, slot)) ; this
-    case r    => foreachFailure(r, slot) ; this
+  def onFailure (slot :Throwable => Unit) :this.type = { connectFailure(slot) ; this }
+
+  /** Causes `slot` to be notified if/when this future is completed with failure. If it has already
+    * failed, the slot will be notified immediately.
+    * @return a connection that can be used to cancel the notification. If the future has already
+    * completed, the returned connection will do nothing.
+    */
+  def connectFailure (slot :Throwable => Unit) :Connection = _result.get match {
+    case null => _result.onValue(foreachFailure(_, slot))
+    case r    => foreachFailure(r, slot) ; Connection.Noop
   }
 
   /** Causes `success` to be notified if/when this future is completed with success, and `failure` to
@@ -44,9 +58,16 @@ class Future[+T] protected (_result :ValueV[Try[T]]) {
     * slot will be notified immediately.
     * @return this future for chaining.
     */
-  def onComplete (slot :Try[T] => Unit) :this.type = _result.get match {
-    case null => _result.onValue(slot) ; this
-    case r    => slot(r) ; this
+  def onComplete (slot :Try[T] => Unit) :this.type = { connectComplete(slot) ; this }
+
+  /** Causes `slot` to be notified when this future is completed. If it has already completed, the
+    * slot will be notified immediately.
+    * @return a connection that can be used to cancel the notification. If the future has already
+    * completed, the returned connection will do nothing.
+    */
+  def connectComplete (slot :Try[T] => Unit) :Connection = _result.get match {
+    case null => _result.onValue(slot)
+    case r    => slot(r) ; Connection.Noop
   }
 
   /** Returns a value that indicates whether this future has completed. */

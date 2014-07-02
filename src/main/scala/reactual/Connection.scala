@@ -15,7 +15,7 @@ trait Connection extends java.io.Closeable {
    * Disconnects this registration. Subsequent events will not be dispatched to the associated slot
    * or listener.
    */
-  override def close ()
+  override def close () :Unit
 
   /**
    * Converts this connection into a one-shot connection. After the first time the slot or listener
@@ -23,4 +23,13 @@ trait Connection extends java.io.Closeable {
    * @return this connection instance for convenient chaining.
    */
   def once () :Connection
+}
+
+object Connection {
+
+  /** A connection that does nothing. */
+  val Noop = new Connection() {
+    override def close () {}
+    override def once () = this
+  }
 }
