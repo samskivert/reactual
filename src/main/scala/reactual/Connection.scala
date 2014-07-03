@@ -28,7 +28,7 @@ trait Connection extends java.io.Closeable {
 object Connection {
 
   /** A connection that does nothing. */
-  val Noop = new Connection() {
+  val Noop :Connection = new Connection() {
     override def close () {}
     override def once () = this
   }
