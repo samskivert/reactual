@@ -6,7 +6,7 @@
 package reactual
 
 /** A container for a single optional value, which may be observed for changes. */
-class OptValue[T] private (init :T) extends OptValueV[T] {
+class OptValue[T] protected (init :T) extends OptValueV[T] {
 
   /** Updates this instance with the supplied value. Registered listeners are notified only if the
     * value differs from the current value.
