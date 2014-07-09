@@ -49,13 +49,15 @@ class OptValue[T] private (init :T) extends OptValueV[T] {
     */
   def clearForce () :Unit = updateAndNotify(null.asInstanceOf[T])
 
-  override def get :T = if (_value == null) throw new NoSuchElementException() else _value
+  override def get :T = if (_value == null) emptyFail else _value
   override def isDefined = _value != null
   override protected def updateLocal (value :T) = {
      val oldValue = _value
      _value = value
     oldValue
   }
+
+  protected def emptyFail :Nothing = throw new NoSuchElementException()
 
   private[this] var _value :T = init
 }
