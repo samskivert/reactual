@@ -8,6 +8,9 @@ package reactual
 /** A container for a single optional value, which may be observed for changes. */
 class OptValue[T] protected (init :T) extends OptValueV[T] {
 
+  /** Returns the current value if one is set, otherwise sets the value to `alt` and returns it. */
+  @inline final def getOrElseUpdate (alt : => T) :T = { if (!isDefined) update(alt) ; get }
+
   /** Updates this instance with the supplied value. Registered listeners are notified only if the
     * value differs from the current value.
     *
